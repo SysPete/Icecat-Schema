@@ -2,15 +2,27 @@ use utf8;
 
 package Icecat::Schema::Result::SidIndex;
 
+=head1 NAME
+
+Icecat::Schema::Result::SidIndex
+
+=cut
+
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
-__PACKAGE__->load_components( "InflateColumn::DateTime", "TimeStamp" );
+
+=head1 TABLE
+
+sid_index
+
+=cut
+
 __PACKAGE__->table("sid_index");
 __PACKAGE__->add_columns(
-    "sid", { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-    "dummy", { data_type => "integer", is_nullable => 1 },
+    sid =>   { data_type => "integer", is_auto_increment => 1 },
+    dummy => { data_type => "integer", is_nullable       => 1 },
 );
 __PACKAGE__->set_primary_key("sid");
 

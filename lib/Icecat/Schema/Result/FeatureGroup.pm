@@ -2,10 +2,23 @@ use utf8;
 
 package Icecat::Schema::Result::FeatureGroup;
 
+=head1 NAME
+
+Icecat::Schema::Result::FeatureGroup
+
+=cut
+
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
+
+=head1 TABLE
+
+feature_group
+
+=cut
+
 __PACKAGE__->table("feature_group");
 __PACKAGE__->add_columns(
     feature_group_id => { data_type => "integer" },

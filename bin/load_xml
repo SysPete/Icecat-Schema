@@ -1,0 +1,516 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use lib 'lib';
+
+use DateTime;
+use Icecat::Schema;
+use Try::Tiny;
+use XML::Twig;
+
+use DDP;
+
+my $schema = Icecat::Schema->connect("ICECAT");
+
+my %rset = (
+    tex        => $schema->resultset('Tex'),
+    vocabulary => $schema->resultset('Vocabulary'),
+);
+
+#<<<
+my @configs = (
+    {
+        file => "xml/LanguageList.xml",
+        handlers => {
+            Language => \&language,
+        },
+    },
+    {
+        file => "xml/MeasuresList.xml",
+        handlers => {
+            Measure => \&measure,
+        },
+    },
+    {
+        file => "xml/FeaturesList.xml",
+        handlers => {
+            Feature => \&feature,
+        },
+    },
+    {
+        file => "xml/CategoriesList.xml",
+        handlers => {
+            Category => \&category,
+        },
+    },
+    {
+        file => "xml/SuppliersList.xml",
+        handlers => {
+            Supplier => \&supplier,
+        },
+    },
+    {
+        file => "xml/FeatureGroupsList.xml",
+        handlers => {
+            FeatureGroup => \&feature_group,
+        },
+    }
+    {
+        file => "xml/CategoryFeaturesList.xml",
+        handlers => {
+            Category => \&category_feature,
+        },
+    },
+    {
+        file => "xml/SupplierProductFamiliesListRequest.xml",
+        handlers => {
+            ProductFamily => \&product_family,
+        },
+    },
+    {
+        file => "xml/files.index.xml",
+        handlers => {
+            file => \&file,
+        },
+    },
+);
+#>>>
+
+foreach my $config (@configs) {
+
+    print "Processing ", $config->{file}, "\n";
+
+    $schema->txn_do(
+        sub {
+            my $twig = XML::Twig->new( twig_handlers => $config->{handlers}, );
+
+            $twig->parsefile( $config->{file} );
+        }
+    );
+}
+
+# quick sid/tid ID creation
+
+sub sid {
+    $schema->resultset('SidIndex')->create( { dummy => undef } )->id;
+}
+
+sub tid {
+    $schema->resultset('TidIndex')->create( { dummy => undef } )->id;
+}
+
+# Twig handlers
+
+sub category {
+    my ( $t, $elt ) = @_;
+
+    # we ignore VirtualCategory (for now)
+
+    my %attrs = %{ $elt->atts };
+
+    my $category = $schema->resultset('Category')->create(
+        {
+            catid      => $attrs{ID},
+            ucatid     => $attrs{UNCATID},
+            sid        => sid(),
+            tid        => tid(),
+            searchable => $attrs{Searchable},
+            low_pic    => $attrs{LowPic},
+            thumb_pic  => $attrs{ThumbPic},
+            visible    => $attrs{Visible},
+        }
+    );
+
+    if ( my $elt = $elt->first_child('ParentCategory') ) {
+        $category->update( { pcatid => $elt->att('ID') } );
+    }
+
+    foreach my $elt ( $elt->children('Description') ) {
+        my %attrs = %{ $elt->atts };
+        next unless $attrs{Value};
+
+        $category->create_related(
+            'descriptions',
+            {
+                tex_id => $attrs{ID},
+                value  => $attrs{Value},
+                langid => $attrs{langid}
+            }
+        );
+    }
+
+    foreach my $elt ( $elt->children('Keywords') ) {
+        my %attrs = %{ $elt->atts };
+        next unless $attrs{Value};
+
+        $category->create_related(
+            'keywords',
+            {
+                id       => $attrs{ID},
+                keywords => $attrs{Value},
+                langid   => $attrs{langid},
+            }
+        );
+    }
+
+    foreach my $elt ( $elt->children('Name') ) {
+        my %attrs = %{ $elt->atts };
+        next unless $attrs{Value};
+
+        $category->create_related(
+            'names',
+            {
+                langid    => $attrs{langid},
+                record_id => $attrs{ID},
+                value     => $attrs{Value}
+            }
+        );
+    }
+
+    $t->purge;
+}
+
+sub category_feature {
+    my ( $t, $elt ) = @_;
+
+    my $catid = $elt->att('ID');
+
+    foreach my $elt ( $elt->children('CategoryFeatureGroup') ) {
+
+        # some are empty
+        next unless $elt->att('ID');
+
+        my $rec = {
+            category_feature_group_id => $elt->att('ID'),
+            catid                     => $catid,
+            feature_group_id => $elt->first_child('FeatureGroup')->att('ID'),
+            no               => $elt->att('No'),
+        };
+
+        $schema->resultset('CategoryFeatureGroup')->create($rec);
+
+    }
+
+    foreach my $elt ( $elt->children('Feature') ) {
+
+        my $rec = {
+            category_feature_id       => $elt->att('CategoryFeature_ID'),
+            feature_id                => $elt->att('ID'),
+            catid                     => $catid,
+            no                        => $elt->att('No'),
+            searchable                => $elt->att('Searchable'),
+            category_feature_group_id => $elt->att('CategoryFeatureGroup_ID'),
+            restricted_search_values =>
+              join( ";", $elt->children_trimmed_text('RestrictedValue') ),
+            use_dropdown_input => $elt->att('Use_Dropdown_Input'),
+            mandatory          => $elt->att('Mandatory'),
+        };
+
+        $schema->resultset('CategoryFeature')->create($rec);
+    }
+
+    $t->purge;
+}
+
+sub feature {
+    my ( $t, $elt ) = @_;
+
+    my $rec = {
+        feature_id => $elt->att('ID'),
+        sid        => sid(),
+        tid        => tid(),
+        class      => $elt->att('Class'),
+        type       => $elt->att('Type'),
+    };
+
+    foreach my $elt ( $elt->children ) {
+        if ( $elt->tag eq 'Descriptions' ) {
+            foreach my $elt ( $elt->children ) {
+                die "Bad description in ", $rec->{measure_id}
+                  if $elt->tag ne 'Description';
+
+                next unless my $value = $elt->trimmed_text;
+
+                push @{ $rec->{descriptions} },
+                  {
+                    tex_id => $elt->att('ID'),
+                    langid => $elt->att('langid'),
+                    value  => $value,
+                    tid    => $rec->{tid},
+                  };
+            }
+        }
+        elsif ( $elt->tag eq 'Measure' ) {
+            $rec->{measure_id} = $elt->att('ID');
+        }
+        elsif ( $elt->tag eq 'Names' ) {
+            foreach my $elt ( $elt->children ) {
+                die "Bad name in ", $rec->{measure_id}
+                  if $elt->tag ne 'Name';
+
+                next unless my $value = $elt->trimmed_text;
+
+                push @{ $rec->{names} },
+                  {
+                    record_id => $elt->att('ID'),
+                    langid    => $elt->att('langid'),
+                    value     => $value,
+                    sid       => $rec->{sid},
+                  };
+            }
+        }
+        elsif ( $elt->tag eq 'RestrictedValues' ) {
+            $rec->{restricted_values} =
+              join( ';', $elt->children_trimmed_text );
+        }
+        else {
+            die "Unexpected tag: ", $elt->tag;
+        }
+    }
+
+    $schema->resultset('Feature')->create($rec);
+
+    $t->purge;
+}
+
+sub feature_group {
+    my ( $t, $elt ) = @_;
+
+    my $sid = sid();
+
+    my $feature_group = $schema->resultset('FeatureGroup')->create(
+        {
+            feature_group_id => $elt->att('ID'),
+            sid              => $sid,
+        }
+    );
+
+    foreach my $elt ( $elt->children('Name') ) {
+        $feature_group->create_related(
+            'names',
+            {
+                record_id => $elt->att('ID'),
+                langid    => $elt->att('langid'),
+                value     => $elt->att('Value'),
+                sid       => $sid,
+            }
+        ) if $elt->att('Value');
+    }
+
+    $t->purge;
+}
+
+sub file {
+    my ( $t, $elt ) = @_;
+
+    my ( $updated, $date_added );
+
+    if ( $elt->att('Updated') =~ /^(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/ )
+    {
+        $updated = DateTime->new(
+            year   => $1,
+            month  => $2,
+            day    => $3,
+            hour   => $4,
+            minute => $5,
+            second => $6
+        );
+    }
+
+    if ( $elt->att('Date_Added') =~ /^(\d\d\d\d)(\d\d)(\d\d)/ ) {
+        $date_added = DateTime->new(
+            year  => $1,
+            month => $2,
+            day   => $3,
+        );
+    }
+
+    # Quality stored in 'dname'
+    # not stored: On_Market, Product_View, Country_Markets, EAN_UPCS, M_Prod_ID
+    $schema->resultset('Product')->create(
+        {
+            product_id      => $elt->att('Product_ID'),
+            supplier_id     => $elt->att('Supplier_id'),
+            prod_id         => $elt->att('Prod_ID'),
+            catid           => $elt->att('Catid'),
+            name            => $elt->att('Model_Name'),
+            high_pic        => $elt->att('HighPic'),
+            updated         => $updated,
+            date_added      => $date_added,
+            dname           => $elt->att('Quality'),
+            high_pic_size   => $elt->att('HighPicSize'),
+            high_pic_width  => $elt->att('HighPicWidth'),
+            high_pic_height => $elt->att('HighPicHeight'),
+        }
+    );
+
+    $t->purge;
+}
+
+sub language {
+    my ( $t, $elt ) = @_;
+
+    # we ignore Countries (for now)
+
+    my %attrs = %{ $elt->atts };
+
+    return if $schema->resultset('Language')->find( $attrs{ID} );
+
+    my $sid      = sid();
+    my $language = $schema->resultset('Language')->create(
+        {
+            langid     => $attrs{ID},
+            sid        => $sid,
+            code       => $attrs{Code},
+            short_code => $attrs{ShortCode},
+        }
+    );
+
+    foreach my $elt ( $elt->children ) {
+        next unless $elt->tag eq 'Name';
+        my %attrs = %{ $elt->atts };
+        $language->create_related(
+            'names',
+            {
+                langid    => $attrs{langid},
+                record_id => $attrs{ID},
+                value     => $attrs{Value}
+            }
+        );
+    }
+
+    $t->purge;
+}
+
+sub measure {
+    my ( $t, $elt ) = @_;
+
+    my $rec = {
+        measure_id => $elt->att('ID'),
+        sid        => sid(),
+        tid        => tid(),
+        sign       => $elt->first_child_trimmed_text('Sign'),
+    };
+
+    foreach my $elt ( $elt->children('Descriptions') ) {
+        foreach my $elt ( $elt->children('Description') ) {
+
+            next unless my $value = $elt->trimmed_text;
+
+            push @{ $rec->{descriptions} },
+              {
+                tex_id => $elt->att('ID'),
+                langid => $elt->att('langid'),
+                value  => $value,
+                tid    => $rec->{tid},
+              };
+        }
+    }
+
+    foreach my $elt ( $elt->children('Names') ) {
+        foreach my $elt ( $elt->children('Name') ) {
+
+            next unless my $value = $elt->trimmed_text;
+
+            push @{ $rec->{names} },
+              {
+                record_id => $elt->att('ID'),
+                langid    => $elt->att('langid'),
+                value     => $value,
+                sid       => $rec->{sid},
+              };
+        }
+    }
+
+    foreach my $elt ( $elt->children('Signs') ) {
+        foreach my $elt ( $elt->children('Sign') ) {
+
+            next unless my $value = $elt->trimmed_text;
+
+            push @{ $rec->{signs} },
+              {
+                measure_sign_id => $elt->att('ID'),
+                langid          => $elt->att('langid'),
+                value           => $value,
+              };
+        }
+    }
+
+    $schema->resultset('Measure')->create($rec);
+
+    $t->purge;
+}
+
+sub product_family {
+    my ( $t, $elt ) = @_;
+
+    my $rec = {
+        family_id        => $elt->att('ID'),
+        parent_family_id => $elt->first_child('ParentProductFamily')->att('ID'),
+        supplier_id      => $elt->first_child('Supplier')->att('ID'),
+        sid              => sid(),
+        tid              => tid(),
+        low_pic          => $elt->att('LowPic'),
+        thumb_pic        => $elt->att('ThumbPic'),
+        catid => $elt->att('Category_ID') || 0,    # FIXME make nullable
+    };
+
+    my $product_family = $schema->resultset('ProductFamily')->create($rec);
+
+    foreach my $elt ( $elt->children('Description') ) {
+        next unless my $value = $elt->att('Value');
+        $product_family->create_related( 'descriptions',
+            { value => $value, langid => $elt->att('langid') } );
+    }
+
+    foreach my $elt ( $elt->children('Name') ) {
+        next unless my $value = $elt->att('Value');
+        $product_family->create_related( 'names',
+            { value => $value, langid => $elt->att('langid') } );
+    }
+
+    foreach my $elt ( $elt->children('Series') ) {
+        my $series_rec = {
+            series_id   => $elt->att('ID'),
+            sid         => sid(),
+            tid         => tid(),
+            supplier_id => $rec->{supplier_id},
+            catid       => $rec->{catid},
+        };
+
+        my $series =
+          $product_family->create_related( 'product_series', $series_rec );
+
+        foreach my $elt ( $elt->children('Description') ) {
+            next unless my $value = $elt->att('Value');
+            $series->create_related( 'descriptions',
+                { value => $value, langid => $elt->att('langid') } );
+        }
+
+        foreach my $elt ( $elt->children('Name') ) {
+            next unless my $value = $elt->att('Value');
+            $series->create_related( 'names',
+                { value => $value, langid => $elt->att('langid') } );
+        }
+
+    }
+
+    $t->purge;
+}
+
+sub supplier {
+    my ( $t, $elt ) = @_;
+
+    $schema->resultset('Supplier')->create(
+        {
+            supplier_id => $elt->att('ID'),
+            name        => $elt->att('Name'),
+            thumb_pic   => $elt->att('LogoPic'),
+            is_sponsor  => $elt->att('Sponsor') ? 'Y' : 'N',
+            thumb_pic   => $elt->att('LogoPic'),
+        }
+    );
+
+    $t->purge;
+}
