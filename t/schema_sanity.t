@@ -133,8 +133,34 @@ foreach my $source_name ( sort $schema->sources ) {
         # skip complex rels
         next if ref( $relationship->{cond} ) eq 'CODE';
 
-        ok %$reverse,
-          "reverse relationship for $source_name -> $relname";
+        if (
+            !(
+                (
+                    $relationship->{class} eq
+                    'Icecat::Schema::Result::Vocabulary' && eq_deeply(
+                        $relationship->{cond}, { 'foreign.sid' => 'self.sid' }
+                    )
+                )
+                || (
+                    $relationship->{class} eq 'Icecat::Schema::Result::Tex'
+                    && eq_deeply(
+                        $relationship->{cond}, { 'foreign.tid' => 'self.tid' }
+                    )
+                )
+                || (
+                    $relationship->{class} eq 'Icecat::Schema::Result::Language'
+                    && eq_deeply(
+                        $relationship->{cond},
+                        { 'foreign.langid' => 'self.backup_langid' }
+                    )
+                )
+            )
+          )
+
+        {
+            ok %$reverse, "reverse relationship for $source_name -> $relname"
+              or diag explain $relationship;
+        }
 
         my @cond = %{ $relationship->{cond} };
 

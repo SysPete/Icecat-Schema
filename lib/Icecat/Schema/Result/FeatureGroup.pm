@@ -28,7 +28,7 @@ __PACKAGE__->set_primary_key("feature_group_id");
 
 __PACKAGE__->has_many(
     category_feature_groups => "Icecat::Schema::Result::CategoryFeatureGroup",
-    "category_feature_group_id"
+    "feature_group_id"
 );
 
 __PACKAGE__->has_many(

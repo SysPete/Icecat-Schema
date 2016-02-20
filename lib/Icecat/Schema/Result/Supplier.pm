@@ -52,6 +52,7 @@ __PACKAGE__->add_columns(
     folder_name => {
         data_type     => "varchar",
         default_value => "",
+        size => 255,
     },
     suppress_offers => {
         data_type     => "char",
@@ -72,6 +73,16 @@ __PACKAGE__->add_unique_constraint( "name", ["name"] );
 
 __PACKAGE__->has_many(
     products => "Icecat::Schema::Result::Product",
+    "supplier_id"
+);
+
+__PACKAGE__->has_many(
+    product_families => "Icecat::Schema::Result::ProductFamily",
+    "supplier_id"
+);
+
+__PACKAGE__->has_many(
+    product_series => "Icecat::Schema::Result::ProductSeries",
     "supplier_id"
 );
 

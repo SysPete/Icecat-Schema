@@ -34,6 +34,11 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
+    features => "Icecat::Schema::Result::Feature",
+    "sid"
+);
+
+__PACKAGE__->has_many(
     feature_groups => "Icecat::Schema::Result::FeatureGroup",
     "sid"
 );

@@ -46,6 +46,11 @@ __PACKAGE__->belongs_to(
 );
 
 __PACKAGE__->has_many(
+    children => "Icecat::Schema::Result::ProductFamily",
+    { 'foreign.parent_family_id' => 'self.family_id'  }
+);
+
+__PACKAGE__->has_many(
     descriptions => "Icecat::Schema::Result::Tex",
     { 'foreign.tid' => 'self.tid' }
 );
@@ -56,13 +61,13 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->belongs_to(
-    parent_family => "Icecat::Schema::Result::ProductFamily",
+    parent => "Icecat::Schema::Result::ProductFamily",
     { 'foreign.family_id' => 'self.parent_family_id' }, { join_type => "left" }
 );
 
 __PACKAGE__->has_many(
     product_series => "Icecat::Schema::Result::ProductSeries",
-    "series_id"
+    "family_id"
 );
 
 __PACKAGE__->belongs_to(

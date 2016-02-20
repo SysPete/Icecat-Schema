@@ -52,8 +52,13 @@ __PACKAGE__->belongs_to(
 );
 
 __PACKAGE__->has_many(
+    product_features => "Icecat::Schema::Result::ProductFeature",
+    "category_feature_id"
+);
+
+__PACKAGE__->has_many(
     product_feature_locals => "Icecat::Schema::Result::ProductFeatureLocal",
-    "product_feature_local_id"
+    "category_feature_id"
 );
 
 1;

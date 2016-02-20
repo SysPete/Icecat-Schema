@@ -48,7 +48,7 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->belongs_to(
     related_product => "Icecat::Schema::Result::Product",
-    "rel_product_id"
+    { 'foreign.product_id' => 'self.rel_product_id' }
 );
 
 1;

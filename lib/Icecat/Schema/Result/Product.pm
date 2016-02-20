@@ -9,13 +9,13 @@ use base 'DBIx::Class::Core';
 __PACKAGE__->load_components( "InflateColumn::DateTime", "TimeStamp" );
 __PACKAGE__->table("product");
 __PACKAGE__->add_columns(
-    product_id  => { data_type => "integer", is_auto_increment => 1 },
-    supplier_id => { data_type => "integer", default_value     => 0 },
+    product_id  => { data_type => "integer" },
+    supplier_id => { data_type => "integer" },
     prod_id     => { data_type => "varchar", default_value => "", size => 60 },
-    catid       => { data_type => "integer", default_value => 0 },
-    user_id     => { data_type => "integer", default_value => 1 },
-    launch_date => { data_type => "integer", is_nullable   => 1 },
-    obsolence_date => { data_type => "integer", is_nullable => 1 },
+    catid          => { data_type => "integer", default_value => 0 },
+    user_id        => { data_type => "integer", default_value => 1 },
+    launch_date    => { data_type => "integer", is_nullable   => 1 },
+    obsolence_date => { data_type => "integer", is_nullable   => 1 },
     name => { data_type => "varchar", default_value => "", size => 255 },
     low_pic   => { data_type => "varchar", default_value => "",  size => 255 },
     high_pic  => { data_type => "varchar", default_value => "",  size => 255 },
@@ -60,6 +60,51 @@ __PACKAGE__->add_unique_constraint( [ "prod_id", "supplier_id" ] );
 __PACKAGE__->belongs_to(
     category => "Icecat::Schema::Result::Category",
     "catid"
+);
+
+__PACKAGE__->has_many(
+    descriptions => "Icecat::Schema::Result::ProductDescription",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    features => "Icecat::Schema::Result::ProductFeature",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    feature_localss => "Icecat::Schema::Result::ProductFeatureLocal",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    galleries => "Icecat::Schema::Result::ProductGallery",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    multimedia_objects => "Icecat::Schema::Result::ProductMultimediaObject",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    multimedia_objects => "Icecat::Schema::Result::ProductMultimediaObject",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    related => "Icecat::Schema::Result::ProductRelated",
+    "product_id"
+);
+
+__PACKAGE__->has_many(
+    related_rel => "Icecat::Schema::Result::ProductRelated",
+    { 'foreign.rel_product_id' => 'self.product_id' }
+);
+
+__PACKAGE__->has_many(
+    reviews => "Icecat::Schema::Result::ProductReview",
+    "product_id"
 );
 
 __PACKAGE__->belongs_to(

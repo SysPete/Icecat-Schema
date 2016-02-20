@@ -2,16 +2,46 @@ use utf8;
 
 package Icecat::Schema::Result::Category;
 
+=head1 NAME
+
+Icecat::Schema::Result::Category
+
+=cut
+
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
-__PACKAGE__->load_components( "InflateColumn::DateTime", "TimeStamp" );
+
+=head1 COMPONENTS
+
+=over
+
+=item * DBIx::Class::InflateColumn::DateTime
+
+=item * DBIx::Class::TimeStamp
+
+=item * DBIx::Class::Tree::AdjacencyList
+
+=back
+
+=cut
+
+__PACKAGE__->load_components( "Tree::AdjacencyList", "InflateColumn::DateTime",
+    "TimeStamp" );
+
+=head1 TABLE
+
+category
+
+=cut
+
 __PACKAGE__->table("category");
+
 __PACKAGE__->add_columns(
     catid  => { data_type => "integer" },
     ucatid => { data_type => "varchar", is_nullable => 1, size => 255 },
-    pcatid     => { data_type => "integer", is_nullable => 1 },
+    pcatid     => { data_type => "integer", is_nullable   => 1 },
     sid        => { data_type => "integer" },
     tid        => { data_type => "integer" },
     searchable => { data_type => "integer", default_value => 0 },
@@ -37,12 +67,19 @@ __PACKAGE__->add_columns(
     visible       => { data_type => "integer", default_value => 0 },
     ssid          => { data_type => "integer" },
 );
+
 __PACKAGE__->set_primary_key("catid");
+
 __PACKAGE__->add_unique_constraint( "ucatid", ["ucatid"] );
 
-__PACKAGE__->belongs_to(
-    parent => "Icecat::Schema::Result::Category",
-    "pcatid", { join_type => 'left' }
+__PACKAGE__->has_many(
+    category_features => "Icecat::Schema::Result::CategoryFeature",
+    "catid"
+);
+
+__PACKAGE__->has_many(
+    category_feature_groups => "Icecat::Schema::Result::CategoryFeatureGroup",
+    "catid"
 );
 
 __PACKAGE__->has_many(
@@ -65,6 +102,16 @@ __PACKAGE__->has_many(
     "catid"
 );
 
+__PACKAGE__->has_many(
+    product_families => "Icecat::Schema::Result::ProductFamily",
+    "catid"
+);
+
+__PACKAGE__->has_many(
+    product_series => "Icecat::Schema::Result::ProductSeries",
+    "catid"
+);
+
 __PACKAGE__->belongs_to(
     sidindex => "Icecat::Schema::Result::SidIndex",
     "sid"
@@ -74,5 +121,41 @@ __PACKAGE__->belongs_to(
     tidindex => "Icecat::Schema::Result::TidIndex",
     "tid"
 );
+
+=head1 INHERITED METHODS
+
+=head2 DBIx::Class::Tree::AdjacencyList
+
+=over 4
+
+=item * L<parent|DBIx::Class::Tree::AdjacencyList/parent>
+
+=item * L<ancestors|DBIx::Class::Tree::AdjacencyList/ancestors>
+
+=item * L<has_descendant|DBIx::Class::Tree::AdjacencyList/has_descendant>
+
+=item * L<parents|DBIx::Class::Tree::AdjacencyList/parents>
+
+=item * L<children|DBIx::Class::Tree::AdjacencyList/children>
+
+=item * L<attach_child|DBIx::Class::Tree::AdjacencyList/attach_child>
+
+=item * L<siblings|DBIx::Class::Tree::AdjacencyList/siblings>
+
+=item * L<attach_sibling|DBIx::Class::Tree::AdjacencyList/attach_sibling>
+
+=item * L<is_leaf|DBIx::Class::Tree::AdjacencyList/is_leaf>
+
+=item * L<is_root|DBIx::Class::Tree::AdjacencyList/is_root>
+
+=item * L<is_branch|DBIx::Class::Tree::AdjacencyList/is_branch>
+
+=back
+
+=cut
+
+# define parent column
+
+__PACKAGE__->parent_column('pcatid');
 
 1;

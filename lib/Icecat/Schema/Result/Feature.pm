@@ -32,6 +32,11 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("feature_id");
 
 __PACKAGE__->has_many(
+    category_features => "Icecat::Schema::Result::CategoryFeature",
+    "feature_id"
+);
+
+__PACKAGE__->has_many(
     descriptions => "Icecat::Schema::Result::Tex",
     { 'foreign.tid' => 'self.tid' }
 );

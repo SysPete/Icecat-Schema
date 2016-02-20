@@ -42,6 +42,42 @@ __PACKAGE__->belongs_to(
 );
 
 __PACKAGE__->has_many(
+    category_keywords => "Icecat::Schema::Result::CategoryKeyword",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    measure_signs => "Icecat::Schema::Result::MeasureSign",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    product_descriptions => "Icecat::Schema::Result::ProductDescription",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    product_feature_locals => "Icecat::Schema::Result::ProductFeatureLocal",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    product_galleries => "Icecat::Schema::Result::ProductGallery",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    product_multimedia_objects =>
+      "Icecat::Schema::Result::ProductMultimediaObject",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    product_reviews => "Icecat::Schema::Result::ProductReview",
+    "langid"
+);
+
+__PACKAGE__->has_many(
     names => "Icecat::Schema::Result::Vocabulary",
     { 'foreign.sid' => 'self.sid' }
 );
@@ -49,6 +85,15 @@ __PACKAGE__->has_many(
 __PACKAGE__->belongs_to(
     sidindex => "Icecat::Schema::Result::SidIndex",
     "sid"
+);
+__PACKAGE__->has_many(
+    texts => "Icecat::Schema::Result::Tex",
+    "langid"
+);
+
+__PACKAGE__->has_many(
+    vocabularies => "Icecat::Schema::Result::Vocabulary",
+    "langid"
 );
 
 1;
