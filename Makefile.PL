@@ -54,13 +54,13 @@ WriteMakefile(
         'Test::More'            => 0,
     },
     dist       => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean      => { FILES    => 'Interchange6-Schema-*' },
+    clean      => { FILES    => 'Icecat-Schema-*' },
     META_MERGE => {
         resources => {
             repository =>
-              'https://github.com/interchange/interchange6-schema.git',
+              'https://github.com/SysPete/Icecat-Schema.git',
             bugtracker =>
-              'https://github.com/interchange/interchange6-schema/issues',
+              'https://github.com/SysPete/Icecat-Schema/issues',
             IRC => 'irc://irc.freenode.net/#interchange',
         },
     },
