@@ -13,11 +13,6 @@ use DDP;
 
 my $schema = Icecat::Schema->connect("ICECAT");
 
-my %rset = (
-    tex        => $schema->resultset('Tex'),
-    vocabulary => $schema->resultset('Vocabulary'),
-);
-
 #<<<
 my @configs = (
     {
