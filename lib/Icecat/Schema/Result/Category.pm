@@ -11,9 +11,9 @@ __PACKAGE__->table("category");
 __PACKAGE__->add_columns(
     catid  => { data_type => "integer" },
     ucatid => { data_type => "varchar", is_nullable => 1, size => 255 },
-    pcatid     => { data_type => "integer", default_value => 1 },
-    sid        => { data_type => "integer", default_value => 0 },
-    tid        => { data_type => "integer", is_nullable   => 1 },
+    pcatid     => { data_type => "integer", is_nullable => 1 },
+    sid        => { data_type => "integer" },
+    tid        => { data_type => "integer" },
     searchable => { data_type => "integer", default_value => 0 },
     low_pic    => {
         data_type     => "varchar",
@@ -40,10 +40,10 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("catid");
 __PACKAGE__->add_unique_constraint( "ucatid", ["ucatid"] );
 
-#__PACKAGE__->belongs_to(
-#    parent => "Icecat::Schema::Result::Category",
-#    "pcatid"
-#);
+__PACKAGE__->belongs_to(
+    parent => "Icecat::Schema::Result::Category",
+    "pcatid", { join_type => 'left' }
+);
 
 __PACKAGE__->has_many(
     descriptions => "Icecat::Schema::Result::Tex",
@@ -63,6 +63,16 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
     products => "Icecat::Schema::Result::Product",
     "catid"
+);
+
+__PACKAGE__->belongs_to(
+    sidindex => "Icecat::Schema::Result::SidIndex",
+    "sid"
+);
+
+__PACKAGE__->belongs_to(
+    tidindex => "Icecat::Schema::Result::TidIndex",
+    "tid"
 );
 
 1;

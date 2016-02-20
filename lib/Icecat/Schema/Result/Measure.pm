@@ -22,10 +22,10 @@ measure
 
 __PACKAGE__->table("measure");
 __PACKAGE__->add_columns(
-    measure_id => { data_type => "integer", is_auto_increment => 1 },
+    measure_id => { data_type => "integer" },
     sid        => { data_type => "integer" },
     tid        => { data_type => "integer" },
-    sign    => { data_type => "varchar", is_nullable => 1, size => 255 },
+    sign       => { data_type => "varchar", is_nullable => 1, size => 255 },
     updated => {
         data_type     => "timestamp",
         set_on_create => 1,

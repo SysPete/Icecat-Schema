@@ -9,37 +9,25 @@ use base 'DBIx::Class::Core';
 __PACKAGE__->load_components( "InflateColumn::DateTime", "TimeStamp" );
 __PACKAGE__->table("feature");
 __PACKAGE__->add_columns(
-    "feature_id",
-    { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-    "sid",
-    { data_type => "integer", default_value => 0, is_nullable => 0 },
-    "tid",
-    { data_type => "integer", default_value => 0, is_nullable => 0 },
-    "measure_id",
-    { data_type => "integer", default_value => 0, is_nullable => 0 },
-    "type",
-    {
-        data_type     => "varchar",
-        default_value => "",
-        is_nullable   => 0,
-        size          => 60
-    },
-    "class",
-    { data_type => "tinyint", default_value => 0, is_nullable => 0 },
-    "limit_direction",
-    { data_type => "tinyint", default_value => 0, is_nullable => 0 },
-    "searchable",
-    { data_type => "tinyint", default_value => 0, is_nullable => 0 },
-    "restricted_values",
-    { data_type => "mediumtext", is_nullable => 1 },
-    "updated",
-    {
+    feature_id        => { data_type => "integer" },
+    sid               => { data_type => "integer" },
+    tid               => { data_type => "integer" },
+    measure_id        => { data_type => "integer", default_value => 0 },
+    type              => { data_type => "varchar", size => 60 },
+    class             => { data_type => "tinyint", default_value => 0 },
+    limit_direction   => { data_type => "tinyint", default_value => 0 },
+    searchable        => { data_type => "tinyint", default_value => 0 },
+    restricted_values => { data_type => "mediumtext", is_nullable => 1 },
+    updated => {
         data_type     => "timestamp",
         set_on_create => 1,
         set_on_update => 1,
     },
-    "last_published",
-    { data_type => "integer", default_value => 0, is_nullable => 1 },
+    last_published => {
+        data_type     => "integer",
+        default_value => 0,
+        is_nullable   => 1
+    },
 );
 __PACKAGE__->set_primary_key("feature_id");
 
