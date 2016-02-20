@@ -22,7 +22,7 @@ measure_sign
 
 __PACKAGE__->table("measure_sign");
 __PACKAGE__->add_columns(
-    measure_sign_id => { data_type => "integer", is_auto_increment => 1 },
+    measure_sign_id => { data_type => "integer" },
     measure_id      => { data_type => "integer" },
     langid          => { data_type => "integer" },
     value           => {
