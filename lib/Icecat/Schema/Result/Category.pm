@@ -65,7 +65,7 @@ __PACKAGE__->add_columns(
       { data_type => "integer", default_value => 0, is_nullable => 1 },
     watched_top10 => { data_type => "integer", default_value => 0 },
     visible       => { data_type => "integer", default_value => 0 },
-    ssid          => { data_type => "integer" },
+    ssid          => { data_type => "integer", is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("catid");

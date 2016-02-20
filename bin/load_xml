@@ -13,12 +13,23 @@ use DDP;
 
 my $schema = Icecat::Schema->connect("ICECAT");
 
+# some classes have parent/child relationships but we don't necessarily
+# create parents before children so :101
+#
+my $parents;
+
 #<<<
 my @configs = (
     {
         file => "xml/LanguageList.xml",
         handlers => {
             Language => \&language,
+        },
+    },
+    {
+        file => "xml/LanguageList.xml",
+        handlers => {
+            Language => \&language_names,
         },
     },
     {
@@ -50,7 +61,7 @@ my @configs = (
         handlers => {
             FeatureGroup => \&feature_group,
         },
-    }
+    },
     {
         file => "xml/CategoryFeaturesList.xml",
         handlers => {
@@ -85,6 +96,12 @@ foreach my $config (@configs) {
     );
 }
 
+while ( my ( $result_class, $value ) = each %$parents ) {
+    while ( my ( $id, $value ) = each %$value ) {
+        $schema->resultset($result_class)->find($id)->update($value);
+    }
+}
+
 # quick sid/tid ID creation
 
 sub sid {
@@ -104,6 +121,9 @@ sub category {
 
     my %attrs = %{ $elt->atts };
 
+    # drop top-level category ID 1
+    next if $attrs{ID} eq "1";
+
     my $category = $schema->resultset('Category')->create(
         {
             catid      => $attrs{ID},
@@ -118,7 +138,13 @@ sub category {
     );
 
     if ( my $elt = $elt->first_child('ParentCategory') ) {
-        $category->update( { pcatid => $elt->att('ID') } );
+        my $pcatid = $elt->att('ID');
+        
+        # category ID 1 is the parent of all categories which we do not
+        # use since our top-level categories have no parent
+        
+        $parents->{Category}->{ $category->catid } =
+          { pcatid => $pcatid } unless $pcatid eq "1";
     }
 
     foreach my $elt ( $elt->children('Description') ) {
@@ -211,60 +237,56 @@ sub category_feature {
 sub feature {
     my ( $t, $elt ) = @_;
 
-    my $rec = {
-        feature_id => $elt->att('ID'),
-        sid        => sid(),
-        tid        => tid(),
-        class      => $elt->att('Class'),
-        type       => $elt->att('Type'),
-    };
+    my $measure_id =
+        $elt->first_child('Measure')
+      ? $elt->first_child('Measure')->att('ID')
+      : undef;
 
-    foreach my $elt ( $elt->children ) {
-        if ( $elt->tag eq 'Descriptions' ) {
-            foreach my $elt ( $elt->children ) {
-                die "Bad description in ", $rec->{measure_id}
-                  if $elt->tag ne 'Description';
+    my $feature = $schema->resultset('Feature')->create(
+        {
+            feature_id => $elt->att('ID'),
+            sid        => sid(),
+            tid        => tid(),
+            class      => $elt->att('Class'),
+            type       => $elt->att('Type'),
+            measure_id => $measure_id,
+            restricted_values =>
+              join( ';', $elt->children_trimmed_text('RestrictedValues') ),
 
-                next unless my $value = $elt->trimmed_text;
+        }
+    );
 
-                push @{ $rec->{descriptions} },
-                  {
+    foreach my $elt ( $elt->children('Descriptions') ) {
+        foreach my $elt ( $elt->children('Description') ) {
+
+            next unless my $value = $elt->trimmed_text;
+
+            $feature->create_related(
+                'descriptions',
+                {
                     tex_id => $elt->att('ID'),
                     langid => $elt->att('langid'),
                     value  => $value,
-                    tid    => $rec->{tid},
-                  };
-            }
-        }
-        elsif ( $elt->tag eq 'Measure' ) {
-            $rec->{measure_id} = $elt->att('ID');
-        }
-        elsif ( $elt->tag eq 'Names' ) {
-            foreach my $elt ( $elt->children ) {
-                die "Bad name in ", $rec->{measure_id}
-                  if $elt->tag ne 'Name';
-
-                next unless my $value = $elt->trimmed_text;
-
-                push @{ $rec->{names} },
-                  {
-                    record_id => $elt->att('ID'),
-                    langid    => $elt->att('langid'),
-                    value     => $value,
-                    sid       => $rec->{sid},
-                  };
-            }
-        }
-        elsif ( $elt->tag eq 'RestrictedValues' ) {
-            $rec->{restricted_values} =
-              join( ';', $elt->children_trimmed_text );
-        }
-        else {
-            die "Unexpected tag: ", $elt->tag;
+                }
+            );
         }
     }
 
-    $schema->resultset('Feature')->create($rec);
+    foreach my $elt ( $elt->children('Names') ) {
+        foreach my $elt ( $elt->children('Name') ) {
+
+            next unless my $value = $elt->trimmed_text;
+
+            $feature->create_related(
+                'names',
+                {
+                    record_id => $elt->att('ID'),
+                    langid    => $elt->att('langid'),
+                    value     => $value,
+                }
+            );
+        }
+    }
 
     $t->purge;
 }
@@ -348,29 +370,34 @@ sub language {
 
     # we ignore Countries (for now)
 
-    my %attrs = %{ $elt->atts };
-
-    return if $schema->resultset('Language')->find( $attrs{ID} );
-
-    my $sid      = sid();
     my $language = $schema->resultset('Language')->create(
         {
-            langid     => $attrs{ID},
-            sid        => $sid,
-            code       => $attrs{Code},
-            short_code => $attrs{ShortCode},
+            langid     => $elt->att('ID'),
+            sid        => sid(),
+            code       => $elt->att('Code'),
+            short_code => $elt->att('ShortCode'),
         }
     );
 
-    foreach my $elt ( $elt->children ) {
-        next unless $elt->tag eq 'Name';
-        my %attrs = %{ $elt->atts };
+    $t->purge;
+}
+
+sub language_names {
+    my ( $t, $elt ) = @_;
+
+    my %attrs = %{ $elt->atts };
+
+    die
+      unless my $language =
+      $schema->resultset('Language')->find( $elt->att('ID') );
+
+    foreach my $elt ( $elt->children('Name') ) {
         $language->create_related(
             'names',
             {
-                langid    => $attrs{langid},
-                record_id => $attrs{ID},
-                value     => $attrs{Value}
+                langid    => $elt->att('langid'),
+                record_id => $elt->att('ID'),
+                value     => $elt->att('Value'),
             }
         );
     }
@@ -448,7 +475,7 @@ sub product_family {
         tid              => tid(),
         low_pic          => $elt->att('LowPic'),
         thumb_pic        => $elt->att('ThumbPic'),
-        catid => $elt->att('Category_ID') || 0,    # FIXME make nullable
+        catid            => $elt->att('Category_ID'),
     };
 
     my $product_family = $schema->resultset('ProductFamily')->create($rec);

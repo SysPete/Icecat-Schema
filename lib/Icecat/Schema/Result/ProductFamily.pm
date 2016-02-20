@@ -29,7 +29,7 @@ __PACKAGE__->add_columns(
     tid              => { data_type => "integer" },
     low_pic => { data_type => "varchar", is_nullable => 1, size => 255 },
     thumb_pic => { data_type => "varchar", is_nullable => 1, size => 255 },
-    catid     => { data_type => "integer" },
+    catid     => { data_type => "integer", is_nullable => 1 },
     data_source_id => { data_type => "integer", default_value => 0 },
     symbol => { data_type => "varchar", default_value => "", size => 120 },
     updated => {

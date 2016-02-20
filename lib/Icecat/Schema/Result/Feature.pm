@@ -12,7 +12,7 @@ __PACKAGE__->add_columns(
     feature_id        => { data_type => "integer" },
     sid               => { data_type => "integer" },
     tid               => { data_type => "integer" },
-    measure_id        => { data_type => "integer", default_value => 0 },
+    measure_id        => { data_type => "integer", is_nullable => 1 },
     type              => { data_type => "varchar", size => 60 },
     class             => { data_type => "tinyint", default_value => 0 },
     limit_direction   => { data_type => "tinyint", default_value => 0 },
