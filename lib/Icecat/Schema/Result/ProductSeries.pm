@@ -12,7 +12,7 @@ __PACKAGE__->add_columns(
     "sid"         => { data_type => "integer" },
     "tid"         => { data_type => "integer" },
     "supplier_id" => { data_type => "integer" },
-    "catid"       => { data_type => "integer" },
+    "catid"       => { data_type => "integer", is_nullable => 1 },
     "family_id"   => { data_type => "integer" },
 );
 __PACKAGE__->set_primary_key("series_id");

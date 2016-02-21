@@ -15,8 +15,8 @@ my $schema = Icecat::Schema->connect("ICECAT");
 
 # some classes have parent/child relationships but we don't necessarily
 # create parents before children so :101
-#
-my $parents;
+
+my %parents;
 
 #<<<
 my @configs = (
@@ -49,6 +49,8 @@ my @configs = (
         handlers => {
             Category => \&category,
         },
+        parent => 'pcatid',
+        class => 'Category',
     },
     {
         file => "xml/SuppliersList.xml",
@@ -69,10 +71,12 @@ my @configs = (
         },
     },
     {
-        file => "xml/SupplierProductFamiliesListRequest.xml",
+        file     => "xml/SupplierProductFamiliesListRequest.xml",
         handlers => {
             ProductFamily => \&product_family,
         },
+        parent => "parent_family_id",
+        class  => "ProductFamily",
     },
     {
         file => "xml/files.index.xml",
@@ -89,17 +93,20 @@ foreach my $config (@configs) {
 
     $schema->txn_do(
         sub {
-            my $twig = XML::Twig->new( twig_handlers => $config->{handlers}, );
+            %parents = () if $config->{parent};
+
+            my $twig = XML::Twig->new( twig_handlers => $config->{handlers} );
 
             $twig->parsefile( $config->{file} );
+
+            if ( $config->{parent} ) {
+                while ( my ( $child, $parent ) = each %parents ) {
+                    $schema->resultset( $config->{class} )->find($child)
+                      ->update( { $config->{parent} => $parent } );
+                }
+            }
         }
     );
-}
-
-while ( my ( $result_class, $value ) = each %$parents ) {
-    while ( my ( $id, $value ) = each %$value ) {
-        $schema->resultset($result_class)->find($id)->update($value);
-    }
 }
 
 # quick sid/tid ID creation
@@ -122,11 +129,11 @@ sub category {
     my %attrs = %{ $elt->atts };
 
     # drop top-level category ID 1
-    next if $attrs{ID} eq "1";
+    my $catid = $attrs{ID};
 
     my $category = $schema->resultset('Category')->create(
         {
-            catid      => $attrs{ID},
+            catid      => $catid,
             ucatid     => $attrs{UNCATID},
             sid        => sid(),
             tid        => tid(),
@@ -137,14 +144,13 @@ sub category {
         }
     );
 
-    if ( my $elt = $elt->first_child('ParentCategory') ) {
-        my $pcatid = $elt->att('ID');
-        
-        # category ID 1 is the parent of all categories which we do not
-        # use since our top-level categories have no parent
-        
-        $parents->{Category}->{ $category->catid } =
-          { pcatid => $pcatid } unless $pcatid eq "1";
+    if ( $catid ne "1" ) {
+
+        # stash parent catid (always do this if catid is not 1)
+
+        if ( my $elt = $elt->first_child('ParentCategory') ) {
+            $parents{$catid} = $elt->att('ID');
+        }
     }
 
     foreach my $elt ( $elt->children('Description') ) {
@@ -467,29 +473,46 @@ sub measure {
 sub product_family {
     my ( $t, $elt ) = @_;
 
-    my $rec = {
-        family_id        => $elt->att('ID'),
-        parent_family_id => $elt->first_child('ParentProductFamily')->att('ID'),
-        supplier_id      => $elt->first_child('Supplier')->att('ID'),
-        sid              => sid(),
-        tid              => tid(),
-        low_pic          => $elt->att('LowPic'),
-        thumb_pic        => $elt->att('ThumbPic'),
-        catid            => $elt->att('Category_ID'),
-    };
+    my $family_id = $elt->att('ID');
 
+    my $rec = {
+        family_id   => $family_id,
+        supplier_id => $elt->first_child('Supplier')->att('ID'),
+        sid         => sid(),
+        tid         => tid(),
+        low_pic     => $elt->att('LowPic'),
+        thumb_pic   => $elt->att('ThumbPic'),
+        catid       => $elt->att('Category_ID'),
+    };
     my $product_family = $schema->resultset('ProductFamily')->create($rec);
+
+    if ( my $elt = $elt->first_child('ParentProductFamily') ) {
+        my $parent = $elt->att('ID');
+        $parents{$family_id} = $parent unless $parent eq "1";
+    }
 
     foreach my $elt ( $elt->children('Description') ) {
         next unless my $value = $elt->att('Value');
-        $product_family->create_related( 'descriptions',
-            { value => $value, langid => $elt->att('langid') } );
+        $product_family->create_related(
+            'descriptions',
+            {
+                tex_id => $elt->att('ID'),
+                value  => $value,
+                langid => $elt->att('langid')
+            }
+        );
     }
 
     foreach my $elt ( $elt->children('Name') ) {
         next unless my $value = $elt->att('Value');
-        $product_family->create_related( 'names',
-            { value => $value, langid => $elt->att('langid') } );
+        $product_family->create_related(
+            'names',
+            {
+                record_id => $elt->att('ID'),
+                value     => $value,
+                langid    => $elt->att('langid')
+            }
+        );
     }
 
     foreach my $elt ( $elt->children('Series') ) {
@@ -506,14 +529,26 @@ sub product_family {
 
         foreach my $elt ( $elt->children('Description') ) {
             next unless my $value = $elt->att('Value');
-            $series->create_related( 'descriptions',
-                { value => $value, langid => $elt->att('langid') } );
+            $series->create_related(
+                'descriptions',
+                {
+                    tex_id => $elt->att('ID'),
+                    value  => $value,
+                    langid => $elt->att('langid')
+                }
+            );
         }
 
         foreach my $elt ( $elt->children('Name') ) {
             next unless my $value = $elt->att('Value');
-            $series->create_related( 'names',
-                { value => $value, langid => $elt->att('langid') } );
+            $series->create_related(
+                'names',
+                {
+                    record_id => $elt->att('ID'),
+                    value     => $value,
+                    langid    => $elt->att('langid')
+                }
+            );
         }
 
     }
