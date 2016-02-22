@@ -13,9 +13,6 @@ use DDP;
 
 my $schema = Icecat::Schema->connect("ICECAT");
 
-# some classes have parent/child relationships but we don't necessarily
-# create parents before children so :101
-
 my %parents;
 
 #<<<
@@ -349,8 +346,7 @@ sub file {
         );
     }
 
-    # Quality stored in 'dname'
-    # not stored: On_Market, Product_View, Country_Markets, EAN_UPCS, M_Prod_ID
+    # not stored: Product_View, Country_Markets, EAN_UPCS, M_Prod_ID
     $schema->resultset('Product')->create(
         {
             product_id      => $elt->att('Product_ID'),
@@ -361,10 +357,11 @@ sub file {
             high_pic        => $elt->att('HighPic'),
             updated         => $updated,
             date_added      => $date_added,
-            dname           => $elt->att('Quality'),
             high_pic_size   => $elt->att('HighPicSize'),
             high_pic_width  => $elt->att('HighPicWidth'),
             high_pic_height => $elt->att('HighPicHeight'),
+            quality         => $elt->att('Quality'),
+            on_market       => $elt->att('On_Market'),
         }
     );
 

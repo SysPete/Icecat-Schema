@@ -5,4 +5,5 @@ VERSION
     0.001
 
 Download all xml files from https://data.icecat.biz/export/freexml/refs/
+plus main files index https://data.Icecat.biz/export/freexml/files.index.xml.gz
 into subdirectory 'xml'.
