@@ -217,6 +217,7 @@ sub category_feature {
 
     foreach my $elt ( $elt->children('Feature') ) {
 
+        # missing: Class, LimitDirection, Type, ValueSorting
         my $rec = {
             category_feature_id       => $elt->att('CategoryFeature_ID'),
             feature_id                => $elt->att('ID'),
