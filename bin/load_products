@@ -1,0 +1,180 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use lib 'lib';
+
+use Icecat::Schema;
+use Path::Tiny;
+use XML::Twig;
+
+my $schema = Icecat::Schema->connect("ICECAT");
+my $product;
+my $description;
+
+foreach my $file ( path("xml/products")->children ) {
+
+    next unless $file->basename =~ /^(\d+)\.xml$/;
+    my $id = $1;
+
+    $product = $schema->resultset('Product')
+      ->find( $id, { prefetch => "descriptions" } );
+
+    $description = $product->new_related( 'descriptions', {} );
+
+    die "Product $id not found in database" unless $product;
+
+    next if $product->descriptions->count;
+
+    print "Processing file: $file\n";
+
+    $schema->txn_do(
+        sub {
+            my $twig = XML::Twig->new(
+                twig_handlers => {
+                    Product                 => \&product,
+                    ProductDescription      => \&description,
+                    ProductFamily           => \&family,
+                    ProductProductFeature   => \&feature,
+                    ProductPicture          => \&gallery,
+                    MultimediaObject        => \&multimedia,
+                    ProductRelated          => \&related,
+                    ShortSummaryDescription => sub {
+                        my ( $t, $elt ) = @_;
+                        $description->short_desc( $elt->trimmed_text )
+                          unless $description->short_desc;
+                    },
+                    LongSummaryDescription => sub {
+                        my ( $t, $elt ) = @_;
+                        $description->long_desc( $elt->trimmed_text )
+                          unless $description->long_desc;
+                    },
+                }
+            );
+            $twig->parsefile($file);
+
+            $product->update;
+
+            # hmm - should get langid from somewhere else
+            $description->langid(1) unless defined $description->langid;
+            $description->insert;
+        }
+    );
+}
+
+sub description {
+    my ( $t, $elt ) = @_;
+    return unless $elt->att('ID');
+    $description->long_desc( $elt->att('LongDesc') );
+    $description->manual_pdf_size( $elt->att('ManualPDFSize') );
+    $description->manual_pdf_url( $elt->att('ManualPDFURL') );
+    $description->pdf_size( $elt->att('PDFSize') );
+    $description->pdf_url( $elt->att('PDFURL') );
+    $description->short_desc( $elt->att('ShortDesc') );
+    $description->specs_url( $elt->att('URL') );
+    $description->warranty_info( $elt->att('WarrantyInfo') );
+    $description->langid( $elt->att('langid') );
+    1;
+}
+
+sub family {
+    my ( $t, $elt ) = @_;
+    $product->family_id( $elt->att('ID') );
+    1;
+}
+
+sub feature {
+    my ( $t, $elt ) = @_;
+    $product->create_related(
+        'features',
+        {
+            category_feature_id => $elt->att('CategoryFeature_ID'),
+            value               => $elt->att('Value'),
+        }
+    );
+    1;
+}
+
+sub gallery {
+    my ( $t, $elt ) = @_;
+    $product->create_related(
+        'galleries',
+        {
+            link          => $elt->att('Pic'),
+            thumb_link    => $elt->att('ThumbPic'),
+            height        => $elt->att('PicHeight'),
+            width         => $elt->att('PicWidth'),
+            size          => $elt->att('Size'),
+            thumb_size    => $elt->att('ThumbSize'),
+            low_link      => $elt->att('LowPic'),
+            medium_link   => $elt->att('Pic500x500'),
+            low_height    => $elt->att('LowPicHeight'),
+            medium_height => $elt->att('Pic500x500Height'),
+            low_width     => $elt->att('LowPicWidth'),
+            medium_width  => $elt->att('Pic500x500Width'),
+            low_size      => $elt->att('LowSize'),
+            medium_size   => $elt->att('Pic500x500Size'),
+            size_origin   => $elt->att('OriginalSize') || 0,
+            langid => 1,    # hmm - should get this from somewhere else
+        }
+    );
+    1;
+}
+
+sub multimedia {
+    my ( $t, $elt ) = @_;
+    $product->create_related(
+        'multimedia_objects',
+        {
+            link        => $elt->att('URL'),
+            short_descr => $elt->att('Description'),
+            langid => 1,    # hmm - should get this from somewhere else
+            size         => $elt->att('Size'),
+            updated      => $elt->att('Date'),
+            content_type => $elt->att('ContentType'),
+            keep_as_url  => $elt->att('KeepAsURL'),
+            type         => $elt->att('Type'),
+            height       => $elt->att('Height'),
+            width        => $elt->att('Width'),
+        }
+    );
+    1;
+}
+
+sub related {
+    my ( $t, $elt ) = @_;
+
+    foreach my $child ( $elt->children('Product') ) {
+        my $related = $schema->resultset('Product')->find( $elt->att('ID') );
+        next unless $related;
+        $product->create_related(
+            'related',
+            {
+                rel_product_id   => $related->id,
+                preferred_option => $child->att('Preferred'),
+            }
+        );
+    }
+    1;
+}
+
+sub product {
+    my ( $t, $elt ) = @_;
+    $product->high_pic( $elt->att('HighPic') );
+    $product->high_pic_height( $elt->att('HighPicHeight') );
+    $product->high_pic_size( $elt->att('HighPicSize') );
+    $product->high_pic_width( $elt->att('HighPicWidth') );
+    $product->low_pic( $elt->att('LowPic') );
+    $product->low_pic_height( $elt->att('LowPicHeight') );
+    $product->low_pic_size( $elt->att('LowPicSize') );
+    $product->low_pic_width( $elt->att('LowPicWidth') );
+    $product->name( $elt->att('Name') );
+    $product->medium_pic( $elt->att('Pic500x500') );
+    $product->medium_pic_height( $elt->att('Pic500x500Height') );
+    $product->medium_pic_size( $elt->att('Pic500x500Size') );
+    $product->medium_pic_width( $elt->att('Pic500x500Width') );
+    $product->launch_date( $elt->att('ReleaseDate') );
+    $product->thumb_pic( $elt->att('ThumbPic') );
+    $product->thumb_pic_size( $elt->att('ThumbPicSize') );
+    1;
+}
