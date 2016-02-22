@@ -48,11 +48,11 @@ __PACKAGE__->add_columns(
       { data_type => "varchar", default_value => "", size => 255 },
     series_id              => { data_type => "integer", default_value => 1 },
     checked_by_supereditor => { data_type => "tinyint", default_value => 0 },
-    medium_pic             => { data_type => "varchar", size          => 255 },
-    medium_pic_size        => { data_type => "integer" },
-    medium_pic_width       => { data_type => "integer" },
-    medium_pic_height      => { data_type => "integer" },
-    high_pic_origin_size   => { data_type => "integer" },
+    medium_pic => { data_type => "varchar", default_value => "", size => 255 },
+    medium_pic_size      => { data_type => "integer", default_value => 0 },
+    medium_pic_width     => { data_type => "integer", default_value => 0 },
+    medium_pic_height    => { data_type => "integer", default_value => 0 },
+    high_pic_origin_size => { data_type => "integer", default_value => 0 },
 );
 __PACKAGE__->set_primary_key("product_id");
 __PACKAGE__->add_unique_constraint( [ "prod_id", "supplier_id" ] );
