@@ -6,7 +6,6 @@ use lib 'lib';
 
 use DateTime;
 use Icecat::Schema;
-use Try::Tiny;
 use XML::Twig;
 
 use DDP;
@@ -226,7 +225,7 @@ sub category_feature {
             searchable                => $elt->att('Searchable'),
             category_feature_group_id => $elt->att('CategoryFeatureGroup_ID'),
             restricted_search_values =>
-              join( ";", $elt->children_trimmed_text('RestrictedValue') ),
+              join( ",", $elt->children_trimmed_text('RestrictedValue') ),
             use_dropdown_input => $elt->att('Use_Dropdown_Input'),
             mandatory          => $elt->att('Mandatory'),
         };
@@ -254,7 +253,7 @@ sub feature {
             type       => $elt->att('Type'),
             measure_id => $measure_id,
             restricted_values =>
-              join( ';', $elt->children_trimmed_text('RestrictedValues') ),
+              join( ',', $elt->children_trimmed_text('RestrictedValues') ),
 
         }
     );

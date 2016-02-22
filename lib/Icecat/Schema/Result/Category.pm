@@ -38,6 +38,45 @@ category
 
 __PACKAGE__->table("category");
 
+=head1 ACCESSORS
+
+=head2 catid
+
+Primary key.
+
+=head2 ucatid
+
+=head2 pcatid
+
+Parent category ID. This is defined for all categories except for the top-level
+catch-all category which is the parent of all other categories.
+
+=head2 sid
+
+Alternate key for L</names> relation.
+
+=head2 tid
+
+Alternate key for L</descriptions> relation.
+
+=head2 searchable
+
+=head2 low_pic
+
+=head2 thumb_pic
+
+=head2 updated
+
+=head2 last_published
+
+=head2 watched_top10
+
+=head2 visible
+
+=head2 ssid
+
+=cut
+
 __PACKAGE__->add_columns(
     catid  => { data_type => "integer" },
     ucatid => { data_type => "varchar", is_nullable => 1, size => 255 },

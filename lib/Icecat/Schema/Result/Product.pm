@@ -14,7 +14,7 @@ __PACKAGE__->add_columns(
     prod_id     => { data_type => "varchar", default_value => "", size => 60 },
     catid          => { data_type => "integer", default_value => 0 },
     user_id        => { data_type => "integer", default_value => 1 },
-    launch_date    => { data_type => "integer", is_nullable   => 1 },
+    launch_date    => { data_type => "timestamp", is_nullable   => 1 },
     obsolence_date => { data_type => "integer", is_nullable   => 1 },
     name => { data_type => "varchar", default_value => "", size => 255 },
     low_pic   => { data_type => "varchar", default_value => "",  size => 255 },
