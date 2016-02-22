@@ -34,7 +34,12 @@ __PACKAGE__->add_columns(
         set_on_update => 1,
     },
 );
+
 __PACKAGE__->set_primary_key("langid");
+
+__PACKAGE__->add_unique_constraint(['code']);
+
+__PACKAGE__->add_unique_constraint(['short_code']);
 
 __PACKAGE__->belongs_to(
     backup_language => "Icecat::Schema::Result::Language",
