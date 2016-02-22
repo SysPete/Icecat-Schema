@@ -30,6 +30,7 @@ WriteMakefile(
             'DBIx::Class::Schema::Config'          => 0.001011,
             'DBIx::Class::Tree'                    => 0,
             'DateTime'                             => 0,
+            'Path::Tiny'                           => 0,
             'Try::Tiny'                            => 0,
             'XML::Twig'                            => 0,
             # Add SQLT dep on version 0 to catch the case of users installing
@@ -50,18 +51,16 @@ WriteMakefile(
         return $href;
     },
     BUILD_REQUIRES => {
-        'Test::Deep'            => 0,
-        'Test::More'            => 0,
+        'Test::Deep' => 0,
+        'Test::More' => 0,
     },
     dist       => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean      => { FILES    => 'Icecat-Schema-*' },
     META_MERGE => {
         resources => {
-            repository =>
-              'https://github.com/SysPete/Icecat-Schema.git',
-            bugtracker =>
-              'https://github.com/SysPete/Icecat-Schema/issues',
-            IRC => 'irc://irc.freenode.net/#interchange',
+            repository => 'https://github.com/SysPete/Icecat-Schema.git',
+            bugtracker => 'https://github.com/SysPete/Icecat-Schema/issues',
+            IRC        => 'irc://irc.freenode.net/#interchange',
         },
     },
 );
