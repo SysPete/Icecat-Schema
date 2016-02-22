@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use lib 'lib';
+
+use Icecat::Schema;
+
+my $schema = Icecat::Schema->connect("ICECAT");
+
+my $langid = $schema->resultset('Language')->find( { short_code => 'EN' } )->id;
+
+my $topcat = $schema->resultset('Category')->find(1);
+
+sub recurse {
+    my ( $cat, $depth ) = @_;
+    $depth++;
+
+    my $name = $cat->names->find( { langid => $langid } );
+
+    my $count = $cat->products->count;
+
+    print $cat->catid, "\t", $count, "\t" x $depth,
+      $name ? $name->value : 'unknown', "\n"
+      unless ( $cat->is_leaf && !$count );
+
+    foreach my $child ( $cat->children ) {
+        recurse( $child, $depth );
+    }
+}
+
+recurse( $topcat, 0 );
+
+foreach my $child ( $topcat->children ) {
+}
