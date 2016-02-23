@@ -24,6 +24,9 @@ foreach my $file ( path("xml/products")->children ) {
 
     die "Product $id not found in database" unless $product;
 
+    # skip if we already a product description loaded
+    # FIXME: this only works whilst we are loading only a single language and
+    # will need updating if we want to load multiple languages
     next if $product->descriptions->count;
 
     print "Processing file: $file\n";
