@@ -28,7 +28,7 @@ __PACKAGE__->add_columns(
     langid     => { data_type => "integer" },
     short_desc => { data_type => "varchar", default_value => "", size => 3000 },
     long_desc  => { data_type => "mediumtext" },
-    specs_url  => { data_type => "varchar", default_value => "", size => 255 },
+    specs_url  => { data_type => "varchar", default_value => "", size => 512 },
     support_url => { data_type => "varchar", default_value => "", size => 255 },
     official_url   => { data_type => "text",       is_nullable => 1 },
     warranty_info  => { data_type => "mediumtext", is_nullable => 1 },
