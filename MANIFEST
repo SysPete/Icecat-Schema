@@ -1,4 +1,5 @@
 CHANGES
+COPYRIGHT
 lib/Icecat/Schema.pm
 lib/Icecat/Schema/Result/CategoryFeatureGroup.pm
 lib/Icecat/Schema/Result/CategoryFeature.pm
@@ -11,13 +12,11 @@ lib/Icecat/Schema/Result/Measure.pm
 lib/Icecat/Schema/Result/MeasureSign.pm
 lib/Icecat/Schema/Result/ProductDescription.pm
 lib/Icecat/Schema/Result/ProductFamily.pm
-lib/Icecat/Schema/Result/.ProductFamily.pm.swp
 lib/Icecat/Schema/Result/ProductFeatureLocal.pm
 lib/Icecat/Schema/Result/ProductFeature.pm
 lib/Icecat/Schema/Result/ProductGallery.pm
 lib/Icecat/Schema/Result/ProductMultimediaObject.pm
 lib/Icecat/Schema/Result/Product.pm
-lib/Icecat/Schema/Result/.Product.pm.swp
 lib/Icecat/Schema/Result/ProductRelated.pm
 lib/Icecat/Schema/Result/ProductReview.pm
 lib/Icecat/Schema/Result/ProductSeries.pm
@@ -26,7 +25,9 @@ lib/Icecat/Schema/Result/Supplier.pm
 lib/Icecat/Schema/Result/Tex.pm
 lib/Icecat/Schema/Result/TidIndex.pm
 lib/Icecat/Schema/Result/Vocabulary.pm
+Makefile.PL
 MANIFEST
 MANIFEST.SKIP
 README
+t/manifest.t
 t/schema_sanity.t
