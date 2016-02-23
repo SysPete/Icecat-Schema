@@ -30,13 +30,9 @@ __PACKAGE__->add_columns(
         set_on_create => 1,
         set_on_update => 1,
     },
-    preferred_option => { data_type => "tinyint", default_value => 0 },
-    data_source_id   => { data_type => "integer", default_value => 0 },
-    order            => {
-        data_type     => "smallint",
-        default_value => 65535,
-        extra         => { unsigned => 1 },
-    },
+    preferred_option => { data_type => "tinyint",  default_value => 0 },
+    data_source_id   => { data_type => "integer",  default_value => 0 },
+    order            => { data_type => "smallint", default_value => 0, },
 );
 __PACKAGE__->set_primary_key("product_related_id");
 __PACKAGE__->add_unique_constraint( [ "product_id", "rel_product_id" ] );
