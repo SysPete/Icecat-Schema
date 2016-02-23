@@ -75,7 +75,7 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
-    feature_localss => "Icecat::Schema::Result::ProductFeatureLocal",
+    feature_locals => "Icecat::Schema::Result::ProductFeatureLocal",
     "product_id"
 );
 
