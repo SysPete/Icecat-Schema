@@ -151,7 +151,7 @@ sub related {
             'related',
             {
                 rel_product_id   => $related->id,
-                preferred_option => $child->att('Preferred'),
+                preferred_option => $child->att('Preferred') || 0,
             }
         );
     }
