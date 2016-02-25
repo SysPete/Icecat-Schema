@@ -61,6 +61,12 @@ my @configs = (
         },
     },
     {
+        file => "xml/FeatureLogosList.xml",
+        handlers => {
+            FeatureLogo => \&feature_logo,
+        },
+    },
+    {
         file => "xml/CategoryFeaturesList.xml",
         handlers => {
             Category => \&category_feature,
@@ -153,10 +159,10 @@ sub category {
         my %attrs = %{ $elt->atts };
         next unless $attrs{Value};
 
-        $category->create_related(
-            'descriptions',
+        $schema->resultset('Tex')->create(
             {
                 tex_id => $attrs{ID},
+                tid    => $category->tid,
                 value  => $attrs{Value},
                 langid => $attrs{langid}
             }
@@ -167,12 +173,12 @@ sub category {
         my %attrs = %{ $elt->atts };
         next unless $attrs{Value};
 
-        $category->create_related(
-            'keywords',
+        $schema->resultset('CategoryKeyword')->create(
             {
-                id       => $attrs{ID},
-                keywords => $attrs{Value},
+                category_id => $category->id,
                 langid   => $attrs{langid},
+                keywords => $attrs{Value},
+                id       => $attrs{ID},
             }
         );
     }
@@ -181,11 +187,11 @@ sub category {
         my %attrs = %{ $elt->atts };
         next unless $attrs{Value};
 
-        $category->create_related(
-            'names',
+        $schema->resultset('Vocabulary')->create(
             {
-                langid    => $attrs{langid},
                 record_id => $attrs{ID},
+                sid       => $category->sid,
+                langid    => $attrs{langid},
                 value     => $attrs{Value}
             }
         );
@@ -204,34 +210,37 @@ sub category_feature {
         # some are empty
         next unless $elt->att('ID');
 
-        my $rec = {
-            category_feature_group_id => $elt->att('ID'),
-            catid                     => $catid,
-            feature_group_id => $elt->first_child('FeatureGroup')->att('ID'),
-            no               => $elt->att('No'),
-        };
-
-        $schema->resultset('CategoryFeatureGroup')->create($rec);
-
+        $schema->resultset('CategoryFeatureGroup')->create(
+            {
+                category_feature_group_id => $elt->att('ID'),
+                catid                     => $catid,
+                feature_group_id =>
+                  $elt->first_child('FeatureGroup')->att('ID'),
+                no => $elt->att('No'),
+            }
+        );
     }
 
     foreach my $elt ( $elt->children('Feature') ) {
 
         # missing: Class, LimitDirection, Type, ValueSorting
-        my $rec = {
-            category_feature_id       => $elt->att('CategoryFeature_ID'),
-            feature_id                => $elt->att('ID'),
-            catid                     => $catid,
-            no                        => $elt->att('No'),
-            searchable                => $elt->att('Searchable'),
-            category_feature_group_id => $elt->att('CategoryFeatureGroup_ID'),
-            restricted_search_values =>
-              join( ",", $elt->children_trimmed_text('RestrictedValue') ),
-            use_dropdown_input => $elt->att('Use_Dropdown_Input'),
-            mandatory          => $elt->att('Mandatory'),
-        };
 
-        $schema->resultset('CategoryFeature')->create($rec);
+        $schema->resultset('CategoryFeature')->create(
+            {
+                category_feature_id => $elt->att('CategoryFeature_ID'),
+                feature_id          => $elt->att('ID'),
+                catid               => $catid,
+                no                  => $elt->att('No'),
+                searchable          => $elt->att('Searchable'),
+                category_feature_group_id =>
+                  $elt->att('CategoryFeatureGroup_ID'),
+                restricted_search_values =>
+                  join( ",", $elt->children_trimmed_text('RestrictedValue') ),
+                use_dropdown_input => $elt->att('Use_Dropdown_Input'),
+                mandatory          => $elt->att('Mandatory'),
+            }
+        );
+
     }
 
     $t->purge;
@@ -259,36 +268,32 @@ sub feature {
         }
     );
 
-    foreach my $elt ( $elt->children('Descriptions') ) {
-        foreach my $elt ( $elt->children('Description') ) {
+    foreach my $elt ( $elt->descendants('Description') ) {
 
-            next unless my $value = $elt->trimmed_text;
+        next unless my $value = $elt->trimmed_text;
 
-            $feature->create_related(
-                'descriptions',
-                {
-                    tex_id => $elt->att('ID'),
-                    langid => $elt->att('langid'),
-                    value  => $value,
-                }
-            );
-        }
+        $schema->resultset('Tex')->create(
+            {
+                tex_id => $elt->att('ID'),
+                tid    => $feature->tid,
+                langid => $elt->att('langid'),
+                value  => $value,
+            }
+        );
     }
 
-    foreach my $elt ( $elt->children('Names') ) {
-        foreach my $elt ( $elt->children('Name') ) {
+    foreach my $elt ( $elt->descendants('Name') ) {
 
-            next unless my $value = $elt->trimmed_text;
+        next unless my $value = $elt->trimmed_text;
 
-            $feature->create_related(
-                'names',
-                {
-                    record_id => $elt->att('ID'),
-                    langid    => $elt->att('langid'),
-                    value     => $value,
-                }
-            );
-        }
+        $schema->resultset('Vocabulary')->create(
+            {
+                record_id => $elt->att('ID'),
+                sid       => $feature->sid,
+                langid    => $elt->att('langid'),
+                value     => $value,
+            }
+        );
     }
 
     $t->purge;
@@ -307,8 +312,7 @@ sub feature_group {
     );
 
     foreach my $elt ( $elt->children('Name') ) {
-        $feature_group->create_related(
-            'names',
+        $schema->resultset('Vocabulary')->create(
             {
                 record_id => $elt->att('ID'),
                 langid    => $elt->att('langid'),
@@ -316,6 +320,36 @@ sub feature_group {
                 sid       => $sid,
             }
         ) if $elt->att('Value');
+    }
+
+    $t->purge;
+}
+
+sub feature_logo {
+    my ( $t, $elt ) = @_;
+
+    my @FeatureLogoValues = $elt->descendants('FeatureLogoValue');
+
+    my $values = join ",", map { $_->trimmed_text } @FeatureLogoValues;
+
+    my $feature_logo = $schema->resultset('FeatureLogo')->create(
+        {
+            feature_id => $elt->att('Feature_ID'),
+            values     => $values,
+            link       => $elt->att('LogoPic'),
+            height     => $elt->att('Height'),
+            width      => $elt->att('Width'),
+            size       => $elt->att('Size'),
+        }
+    );
+
+    while ( my $elt = $elt->descendants('FeatureLogoCategory') ) {
+        $schema->resultset('FeatureLogoCategory')->create(
+            {
+                feature_logo_id => $feature_logo->id,
+                category_id     => $elt->att('catid'),
+            }
+        );
     }
 
     $t->purge;
@@ -395,11 +429,11 @@ sub language_names {
       $schema->resultset('Language')->find( $elt->att('ID') );
 
     foreach my $elt ( $elt->children('Name') ) {
-        $language->create_related(
-            'names',
+        $schema->resultset('Vocabulary')->create(
             {
-                langid    => $elt->att('langid'),
                 record_id => $elt->att('ID'),
+                sid       => $language->sid,
+                langid    => $elt->att('langid'),
                 value     => $elt->att('Value'),
             }
         );
