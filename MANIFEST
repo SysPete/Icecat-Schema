@@ -5,6 +5,8 @@ lib/Icecat/Schema/Result/CategoryFeatureGroup.pm
 lib/Icecat/Schema/Result/CategoryFeature.pm
 lib/Icecat/Schema/Result/CategoryKeyword.pm
 lib/Icecat/Schema/Result/Category.pm
+lib/Icecat/Schema/Result/FeatureLogoCategory.pm
+lib/Icecat/Schema/Result/FeatureLogo.pm
 lib/Icecat/Schema/Result/FeatureGroup.pm
 lib/Icecat/Schema/Result/Feature.pm
 lib/Icecat/Schema/Result/Language.pm
