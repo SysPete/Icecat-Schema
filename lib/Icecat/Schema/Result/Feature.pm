@@ -41,6 +41,11 @@ __PACKAGE__->has_many(
     { 'foreign.tid' => 'self.tid' }
 );
 
+__PACKAGE__->has_many(
+    feature_logos => "Icecat::Schema::Result::FeatureLogo",
+    "feature_id"
+);
+
 __PACKAGE__->belongs_to(
     measure => "Icecat::Schema::Result::Measure",
     "measure_id"

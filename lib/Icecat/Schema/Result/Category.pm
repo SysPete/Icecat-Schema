@@ -127,6 +127,11 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
+    feature_logo_categories => "Icecat::Schema::Result::FeatureLogoCategory",
+    "category_id"
+);
+
+__PACKAGE__->has_many(
     keywords => "Icecat::Schema::Result::CategoryKeyword",
     "category_id"
 );
