@@ -328,13 +328,17 @@ sub feature_group {
 sub feature_logo {
     my ( $t, $elt ) = @_;
 
+    # make sure related Feature exists
+    return unless my $feature = $schema->resultset('Feature')
+      ->find( { feature_id => $elt->att('Feature_ID') } );
+
     my @FeatureLogoValues = $elt->descendants('FeatureLogoValue');
 
     my $values = join ",", map { $_->trimmed_text } @FeatureLogoValues;
 
     my $feature_logo = $schema->resultset('FeatureLogo')->create(
         {
-            feature_id => $elt->att('Feature_ID'),
+            feature_id => $feature->id,
             values     => $values,
             link       => $elt->att('LogoPic'),
             height     => $elt->att('Height'),
@@ -343,7 +347,7 @@ sub feature_logo {
         }
     );
 
-    while ( my $elt = $elt->descendants('FeatureLogoCategory') ) {
+    foreach my $elt ( $elt->descendants('FeatureLogoCategory') ) {
         $schema->resultset('FeatureLogoCategory')->create(
             {
                 feature_logo_id => $feature_logo->id,
