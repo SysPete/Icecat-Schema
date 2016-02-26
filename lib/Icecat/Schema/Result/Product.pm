@@ -90,11 +90,6 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
-    multimedia_objects => "Icecat::Schema::Result::ProductMultimediaObject",
-    "product_id"
-);
-
-__PACKAGE__->has_many(
     related => "Icecat::Schema::Result::ProductRelated",
     "product_id"
 );

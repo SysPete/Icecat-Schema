@@ -22,23 +22,24 @@ product_gallery
 
 __PACKAGE__->table("product_gallery");
 __PACKAGE__->add_columns(
-    id         => { data_type => "integer", is_auto_increment => 1 },
-    product_id => { data_type => "integer", default_value     => 0 },
-    link => { data_type => "varchar", default_value => "", size => 255 },
-    thumb_link => { data_type => "varchar", default_value => "", size => 255 },
-    height     => { data_type => "integer", default_value => 0 },
-    width      => { data_type => "integer", default_value => 0 },
-    size       => { data_type => "integer", default_value => 0 },
-    quality => { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+    id => {
+        data_type         => "integer",
+        is_auto_increment => 1
+    },
+    product_id => { data_type => "integer" },
+    link       => { data_type => "varchar", size => 255 },
+    thumb_link => { data_type => "varchar", size => 255 },
+    height     => { data_type => "integer" },
+    width      => { data_type => "integer" },
+    size       => { data_type => "integer" },
     updated => {
         data_type     => "timestamp",
         set_on_create => 1,
         set_on_update => 1,
     },
-    thumb_size  => { data_type => "integer", default_value => 0 },
-    link_origin => { data_type => "varchar", default_value => "", size => 255 },
-    low_link    => { data_type => "varchar", size          => 255 },
-    medium_link => { data_type => "varchar", size          => 255 },
+    thumb_size    => { data_type => "integer" },
+    low_link      => { data_type => "varchar", size => 255 },
+    medium_link   => { data_type => "varchar", size => 255 },
     low_height    => { data_type => "integer" },
     medium_height => { data_type => "integer" },
     low_width     => { data_type => "integer" },
@@ -46,7 +47,11 @@ __PACKAGE__->add_columns(
     low_size      => { data_type => "integer" },
     medium_size   => { data_type => "integer" },
     size_origin   => { data_type => "integer" },
-    langid        => { data_type => "integer", default_value => 0 },
+    no            => { data_type => "integer" },
+    logo          => { data_type => "boolean" },
+    langid        => { data_type => "integer" },
+    is_main       => { data_type => "boolean" },
+    source        => { data_type => "varchar", size => 255 },
 );
 __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint( [ "product_id", "link" ] );

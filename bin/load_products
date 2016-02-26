@@ -100,10 +100,17 @@ sub feature {
 
 sub gallery {
     my ( $t, $elt ) = @_;
+
+    my $link = $elt->att('Pic');
+
+    # we should already have feature_logo and if we haven't then this is bad
+    # data since it no longer exists in icecat's image archive
+    return if $link =~ /feature_logo/;
+
     $product->create_related(
         'galleries',
         {
-            link          => $elt->att('Pic'),
+            link          => $link,
             thumb_link    => $elt->att('ThumbPic'),
             height        => $elt->att('PicHeight'),
             width         => $elt->att('PicWidth'),
@@ -118,7 +125,13 @@ sub gallery {
             low_size      => $elt->att('LowSize'),
             medium_size   => $elt->att('Pic500x500Size'),
             size_origin   => $elt->att('OriginalSize') || 0,
-            langid => 1,    # hmm - should get this from somewhere else
+            no            => $elt->att('No') || 0,
+            logo          => $elt->att('logo') || 0,
+            is_main       => $elt->att('IsMain') || 0,
+            source        => $elt->att('Source') || "",
+
+            # hmm - should get this from somewhere else if not defined
+            langid => $elt->att('langid') ? $elt->att('langid') : 1,
         }
     );
     1;
@@ -129,16 +142,24 @@ sub multimedia {
     $product->create_related(
         'multimedia_objects',
         {
-            link        => $elt->att('URL'),
-            short_descr => $elt->att('Description'),
-            langid => 1,    # hmm - should get this from somewhere else
-            size         => $elt->att('Size'),
-            updated      => $elt->att('Date'),
             content_type => $elt->att('ContentType'),
+            updated      => $elt->att('Date'),
+            description  => $elt->att('Description'),
+            link         => $elt->att('URL'),
+            size         => $elt->att('Size'),
             keep_as_url  => $elt->att('KeepAsURL'),
             type         => $elt->att('Type'),
             height       => $elt->att('Height'),
             width        => $elt->att('Width'),
+            langid       => $elt->att('langid') ? $elt->att('langid') : 1,
+            is_rich => $elt->att('IsRich') || 0,
+            preview_height => $elt->att('PreviewHeight'),
+            preview_size   => $elt->att('PreviewSize'),
+            preview_width  => $elt->att('PreviewWidth') || 0,
+            preview_url    => $elt->att('PreviewUrl'),
+            source         => $elt->att('Source') || "",
+            thumb_url      => $elt->att('ThumbUrl') || "",
+            uuid           => $elt->att('UUID') || "",
         }
     );
     1;
@@ -171,7 +192,7 @@ sub product {
     $product->low_pic_height( $elt->att('LowPicHeight') );
     $product->low_pic_size( $elt->att('LowPicSize') );
     $product->low_pic_width( $elt->att('LowPicWidth') );
-    $product->name( $elt->att('Name') );
+    $product->name( $elt->att('Title') );
     $product->medium_pic( $elt->att('Pic500x500') );
     $product->medium_pic_height( $elt->att('Pic500x500Height') );
     $product->medium_pic_size( $elt->att('Pic500x500Size') );
