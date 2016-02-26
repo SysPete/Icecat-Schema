@@ -1,0 +1,2 @@
+perl -MPod::Markdown::Github -e "Pod::Markdown::Github->filter('lib/Icecat/Schema.pm')" > README.md
+perldoc -t lib/Icecat/Schema.pm > README

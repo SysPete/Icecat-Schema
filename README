@@ -2,8 +2,73 @@ NAME
     Icecat::Schema - DBIx::Class schema for icecat.biz data
 
 VERSION
-    0.001
+    0.003
 
-Download all xml files from https://data.icecat.biz/export/freexml/refs/
-plus main files index https://data.Icecat.biz/export/freexml/files.index.xml.gz
-into subdirectory 'xml'.
+DESCRIPTION
+    DBIx::Class schema for Icecat.biz <http://icecat.biz/> product
+    datasheets.
+
+    You can use DBIx::Class::Schema::Config for database credential storage.
+
+RESULT CLASSES
+    *   CategoryFeatureGroup
+
+    *   CategoryFeature
+
+    *   CategoryKeyword
+
+    *   Category
+
+    *   FeatureGroup
+
+    *   FeatureLogoCategory
+
+    *   FeatureLogo
+
+    *   Feature
+
+    *   Language
+
+    *   Measure
+
+    *   MeasureSign
+
+    *   ProductDescription
+
+    *   ProductFamily
+
+    *   ProductFeatureLocal
+
+    *   ProductFeature
+
+    *   ProductGallery
+
+    *   ProductMultimediaObject
+
+    *   Product
+
+    *   ProductRelated
+
+    *   ProductReview
+
+    *   ProductSeries
+
+    *   SidIndex
+
+        Used for generating alternate keys for relationships with
+        Vocabulary.
+
+    *   Supplier
+
+    *   Tex
+
+        Long I18N translations.
+
+    *   TidIndex
+
+        Used for generating alternate keys for relationships with Tex.
+
+    *   Vocabulary
+
+        Short I18N translations.
+
