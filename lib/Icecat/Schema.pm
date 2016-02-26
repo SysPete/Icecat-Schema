@@ -7,11 +7,11 @@ Icecat::Schema - DBIx::Class schema for icecat.biz data
 
 =head1 VERSION
 
-0.002
+0.003
 
 =cut
 
-our $VERSION = 0.002;
+our $VERSION = 0.003;
 
 use strict;
 use warnings;

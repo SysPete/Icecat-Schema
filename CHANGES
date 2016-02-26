@@ -1,5 +1,17 @@
 Revision history for Icecat::Schema
 
-0.001 Sat 20 Feb 15:55:38 CET 2016
+0.003 Fri 26 Feb 18:10:25 2016 +0100
+
+    * add FeatureLogo and FeatureLogoCategory result classes
+    * load_xml now also processes FeatureLogosList.xml
+    * skip ProductGallery pictures with feature_logo in url
+    * skip products with known bad images in load_products
+
+0.002 Tue Feb 23 10:40:58 2016 +0100
+
+    * add schema_loader script as was used to generate initial schema from DDL
+    * load_products now loads most xml files as well as file list without error
+
+0.001 Sat 20 Feb 15:55:38 2016 +0100
 
     * Initial release.
