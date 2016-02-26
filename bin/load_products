@@ -11,14 +11,18 @@ use XML::Twig;
 my $schema = Icecat::Schema->connect("ICECAT");
 my $product;
 my $description;
+my $bad_product;
 
 foreach my $file ( path("xml/products")->children ) {
+
+    $bad_product = 0;
 
     next unless $file->basename =~ /^(\d+)\.xml$/;
     my $id = $1;
 
     $product = $schema->resultset('Product')
       ->find( $id, { prefetch => "descriptions" } );
+    next unless $product;
 
     $description = $product->new_related( 'descriptions', {} );
 
@@ -55,6 +59,11 @@ foreach my $file ( path("xml/products")->children ) {
                 }
             );
             $twig->parsefile($file);
+
+            if ( $bad_product ) {
+                $product->delete;
+                return;
+            }
 
             $product->update;
 
@@ -103,9 +112,10 @@ sub gallery {
 
     my $link = $elt->att('Pic');
 
-    # we should already have feature_logo and if we haven't then this is bad
-    # data since it no longer exists in icecat's image archive
-    return if $link =~ /feature_logo/;
+    # We should already have feature_logo and if we haven't then this is bad
+    # data since it no longer exists in icecat's image archive.
+    # Also any inishop.com images are unreachable
+    return if $link =~ /(feature_logo|inishop\.com)/;
 
     $product->create_related(
         'galleries',
@@ -184,6 +194,16 @@ sub related {
 
 sub product {
     my ( $t, $elt ) = @_;
+
+    # inishop.com images are not available and they exist in so few
+    # products I prefer we simply drop those products
+    foreach my $pic (qw/HighPic LowPic Pic500x500 ThumbPic/) {
+        if ( $elt->att($pic) && $elt->att($pic) =~ /\/\/inishop\.com/ ) {
+            $bad_product = 1;
+            return;
+        }
+    }
+
     $product->high_pic( $elt->att('HighPic') );
     $product->high_pic_height( $elt->att('HighPicHeight') );
     $product->high_pic_size( $elt->att('HighPicSize') );
