@@ -28,6 +28,7 @@ WriteMakefile(
             'DBIx::Class::Helpers'                 => 2.024001,
             'DBIx::Class::InflateColumn::DateTime' => 0,
             'DBIx::Class::Schema::Config'          => 0.001011,
+            'DBIx::Class::TimeStamp'               => 0,
             'DBIx::Class::Tree'                    => 0,
             'DateTime'                             => 0,
             'Path::Tiny'                           => 0,
