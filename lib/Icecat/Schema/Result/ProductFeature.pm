@@ -24,8 +24,7 @@ __PACKAGE__->table("product_feature");
 __PACKAGE__->add_columns(
     product_feature_id => { data_type => "integer", is_auto_increment => 1 },
     product_id         => { data_type => "integer" },
-    category_feature_id =>
-      { data_type => "integer", extra => { unsigned => 1 } },
+    category_feature_id => { data_type => "integer" },
     value => {
         data_type     => "varchar",
         default_value => "",
