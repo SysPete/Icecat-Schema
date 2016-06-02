@@ -14,7 +14,7 @@ __PACKAGE__->add_columns(
     prod_id     => { data_type => "varchar", default_value => "", size => 60 },
     catid          => { data_type => "integer", default_value => 0 },
     user_id        => { data_type => "integer", default_value => 1 },
-    launch_date    => { data_type => "timestamp", is_nullable   => 1 },
+    launch_date    => { data_type => "datetime", is_nullable   => 1 },
     obsolence_date => { data_type => "integer", is_nullable   => 1 },
     name => { data_type => "varchar", default_value => "", size => 255 },
     low_pic   => { data_type => "varchar", default_value => "",  size => 255 },
@@ -23,7 +23,7 @@ __PACKAGE__->add_columns(
     public    => { data_type => "char",    default_value => "Y", size => 1 },
     thumb_pic => { data_type => "varchar", is_nullable   => 1,   size => 255 },
     updated   => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },
@@ -55,6 +55,7 @@ __PACKAGE__->add_columns(
     high_pic_origin_size => { data_type => "integer", default_value => 0 },
     quality              => { data_type => "varchar", size          => 16 },
     on_market            => { data_type => "boolean", default_value => 0 },
+    got_images => { data_type => "boolean" },
 );
 __PACKAGE__->set_primary_key("product_id");
 __PACKAGE__->add_unique_constraint( [ "prod_id", "supplier_id" ] );

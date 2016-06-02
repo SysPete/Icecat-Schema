@@ -34,7 +34,7 @@ __PACKAGE__->add_columns(
     warranty_info  => { data_type => "mediumtext", is_nullable => 1 },
     option_field_1 => { data_type => "mediumtext", is_nullable => 1 },
     updated        => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },

@@ -27,11 +27,11 @@ __PACKAGE__->add_columns(
     tid        => { data_type => "integer" },
     sign       => { data_type => "varchar", is_nullable => 1, size => 255 },
     updated => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },
-    last_published        => { data_type => "timestamp", set_on_create => 1, },
+    last_published        => { data_type => "datetime", set_on_create => 1, },
     system_of_measurement => {
         data_type     => "enum",
         default_value => "metric",

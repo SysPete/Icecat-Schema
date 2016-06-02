@@ -33,7 +33,7 @@ __PACKAGE__->add_columns(
     data_source_id => { data_type => "integer", default_value => 0 },
     symbol => { data_type => "varchar", default_value => "", size => 120 },
     updated => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },

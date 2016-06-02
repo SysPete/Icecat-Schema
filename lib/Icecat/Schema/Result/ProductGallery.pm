@@ -33,7 +33,7 @@ __PACKAGE__->add_columns(
     width      => { data_type => "integer" },
     size       => { data_type => "integer" },
     updated => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },
@@ -52,6 +52,7 @@ __PACKAGE__->add_columns(
     langid        => { data_type => "integer" },
     is_main       => { data_type => "boolean" },
     source        => { data_type => "varchar", size => 255 },
+    got_images => { data_type => "boolean" },
 );
 __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint( [ "product_id", "link" ] );

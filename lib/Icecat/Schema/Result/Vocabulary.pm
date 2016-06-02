@@ -14,7 +14,7 @@ __PACKAGE__->add_columns(
     langid    => { data_type => "integer", default_value => 0 },
     value     => { data_type => "varchar", is_nullable => 1, size => 255 },
     updated => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },

@@ -41,7 +41,7 @@ __PACKAGE__->add_columns(
         size          => 80
     },
     updated => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },

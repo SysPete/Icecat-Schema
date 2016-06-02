@@ -26,7 +26,7 @@ __PACKAGE__->add_columns(
     product_id         => { data_type => "integer" },
     rel_product_id     => { data_type => "integer" },
     updated            => {
-        data_type     => "timestamp",
+        data_type     => "datetime",
         set_on_create => 1,
         set_on_update => 1,
     },
