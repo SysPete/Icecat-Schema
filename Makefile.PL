@@ -38,6 +38,9 @@ WriteMakefile(
             # directly from checked out repo who will not have META files yet.
             # This is also needed for travis-ci.
             'SQL::Translator' => 0,
+            # Prerequisites for get_products script
+            'Gzip::Faster' => 0,
+            'WWW::Mechanize::Sleepy' => 0,
         };
 
         # now add in the DBIC deploy deps
