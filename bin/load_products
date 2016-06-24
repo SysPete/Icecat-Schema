@@ -39,6 +39,7 @@ foreach my $file ( path("xml/products")->children ) {
         sub {
             my $twig = XML::Twig->new(
                 twig_handlers => {
+                    EANCode                 => \&gtin,
                     Product                 => \&product,
                     ProductDescription      => \&description,
                     ProductFamily           => \&family,
@@ -144,6 +145,14 @@ sub gallery {
             langid => $elt->att('langid') ? $elt->att('langid') : 1,
         }
     );
+    1;
+}
+
+sub gtin {
+    my ( $t, $elt ) = @_;
+    if ( my $gtin = $elt->att('EAN') ) {
+        $product->gtin( $gtin );
+    }
     1;
 }
 
