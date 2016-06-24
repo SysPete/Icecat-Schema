@@ -1,5 +1,9 @@
 Revision history for Icecat::Schema
 
+0.004 Fri 24 Jun 14:26:41 CEST 2016
+
+    * add gtin column to Product result class
+
 0.003 Fri 26 Feb 18:10:25 2016 +0100
 
     * add FeatureLogo and FeatureLogoCategory result classes
