@@ -28,6 +28,30 @@ DBIx::Class schema for L<Icecat.biz|http://icecat.biz/> product datasheets.
 
 You can use L<DBIx::Class::Schema::Config> for database credential storage.
 
+=head1 LOADING FROM XML
+
+Run the following scripts:
+
+=over
+
+=item
+
+    bin/load_xml
+
+=item Retrieve XML files per category
+
+    bin/get_products
+
+This saves all products into F<xml/products> directory.
+
+=item Load products into the database
+
+    bin/load_products
+
+This processes all products from the F<xml/products> directory.
+
+=back
+
 =head1 RESULT CLASSES
 
 =over
