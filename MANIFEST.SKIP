@@ -5,3 +5,5 @@
 ^\.git\/
 ^\.gitignore
 ^.*.swp
+^upgrade\/
+README.md
