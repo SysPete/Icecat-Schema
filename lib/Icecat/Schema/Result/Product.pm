@@ -56,6 +56,7 @@ __PACKAGE__->add_columns(
     quality              => { data_type => "varchar", size          => 16 },
     on_market            => { data_type => "boolean", default_value => 0 },
     got_images => { data_type => "boolean", default_value => 0 },
+    gtin       => { data_type => "varchar", size => 14, is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key("product_id");
 __PACKAGE__->add_unique_constraint( [ "prod_id", "supplier_id" ] );
