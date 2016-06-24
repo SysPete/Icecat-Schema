@@ -4,7 +4,7 @@ Icecat::Schema - DBIx::Class schema for icecat.biz data
 
 # VERSION
 
-0.003
+0.004
 
 # DESCRIPTION
 
