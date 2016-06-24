@@ -14,7 +14,7 @@ my $conf_data = LoadFile("$FindBin::Bin/../icecat.yaml");
 my @required = qw/username password category_id/;
 
 foreach my $k (@required) {
-    die "Missing $k (required fields:" . join(", ", @required)
+    die "Missing $k (required fields: " . join(", ", @required) . ')'
       unless defined $conf_data->{$k};
 }
 
