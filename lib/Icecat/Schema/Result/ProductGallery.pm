@@ -52,7 +52,7 @@ __PACKAGE__->add_columns(
     langid        => { data_type => "integer" },
     is_main       => { data_type => "boolean" },
     source        => { data_type => "varchar", size => 255 },
-    got_images => { data_type => "boolean" },
+    got_images => { data_type => "boolean", default_value => "false" },
 );
 __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint( [ "product_id", "link" ] );
